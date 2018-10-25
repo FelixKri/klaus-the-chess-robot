@@ -12,7 +12,7 @@ public class Main {
 
         System.out.println();
 
-        SerialPort comPort = SerialPort.getCommPorts()[0];
+        SerialPort comPort = SerialPort.getCommPorts()[1];
         System.out.println(comPort);
         System.out.println(comPort.getBaudRate());
         System.out.println(comPort.getDescriptivePortName());
@@ -21,16 +21,17 @@ public class Main {
 
         comPort.openPort();
         try {
-            while (true)
-            {
-                while (true) {
-                    byte[] readBuffer = new byte[comPort.bytesAvailable()];
-                    int numRead = comPort.readBytes(readBuffer, readBuffer.length);
-                    System.out.println("Read " + numRead);
-                    Thread.sleep(600);
-                }
+            while (true) {
+                while (comPort.bytesAvailable() == 0);
+
+                byte[] readBuffer = new byte[comPort.bytesAvailable()];
+                int numRead = comPort.readBytes(readBuffer, readBuffer.length);
+                System.out.println("Read " + numRead + " - " + new String(readBuffer));
+                Thread.sleep(300);
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         comPort.closePort();
     }
 
