@@ -1,38 +1,24 @@
 package dev.comhub;
 
-import com.fazecast.jSerialComm.*;
+import dev.comhub.serial.USBController;
 
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Ports: ");
-        for (SerialPort p : SerialPort.getCommPorts()) {
-            System.out.println(p);
-        }
+        USBController usbc = new USBController();
+        usbc.init();
 
-        System.out.println();
-
-        SerialPort comPort = SerialPort.getCommPorts()[1];
-        System.out.println(comPort);
-        System.out.println(comPort.getBaudRate());
-        System.out.println(comPort.getDescriptivePortName());
-        System.out.println(comPort.getSystemPortName());
-        System.out.println();
-
-        comPort.openPort();
-        try {
-            while (true) {
-                while (comPort.bytesAvailable() == 0);
-
-                byte[] readBuffer = new byte[comPort.bytesAvailable()];
-                int numRead = comPort.readBytes(readBuffer, readBuffer.length);
-                System.out.println("Read " + numRead + " - " + new String(readBuffer));
-                Thread.sleep(300);
+        while(true) {
+            String s = usbc.read();
+            if(s != null) System.out.print(s);
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        comPort.closePort();
+
+        //usbc.close();
     }
 
 }
