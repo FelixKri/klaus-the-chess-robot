@@ -20,7 +20,7 @@ public class USBController {
     private boolean init = false;
 
     public USBController() {
-        this(50);
+        this(256);
     }
 
     /**
@@ -63,30 +63,30 @@ public class USBController {
     }
 
     /**
+     * @return if a line is available to be read, see: {@link #nextLine()}
+     */
+    public boolean hasLine() {
+        if (!init) return false;
+
+        refillBuffer();
+        return findNewLine() >= 0;
+    }
+
+    /**
      * Returns the next line from the buffer or null if there is nothing in the buffer.
      * If theres nothing in the buffer it will try to fill it.
      * A line ending is "\n", its not included in the string.
      *
      * @return next line in buffer or null
      */
-    public String nextLine() {//TODO: implement buffered line reading
+    public String nextLine() {
         if (!init) return null;
 
-        //is a line in the buffer
-        if(cursor == dataLen || findNewLine() == -1) {
-            System.out.println("> to buffer");
-            dataLen = readToBuffer();
-            cursor = 0;
-        }
+        refillBuffer();
 
         //try to retrieve data
         int index = findNewLine();
-        //System.out.println("> index " + index);
-        if(cursor < dataLen && index >= 0) {
-            System.out.println("> cursor " + cursor);
-            System.out.println("> datalen " + dataLen);
-            //System.out.println("> from buffer");
-
+        if (cursor < dataLen && index >= 0) {
             byte[] bytes = new byte[index - cursor];
             System.arraycopy(buffer, cursor, bytes, 0, bytes.length);
             cursor = index + 1;
@@ -97,40 +97,43 @@ public class USBController {
     }
 
     /**
-     * Loads all available bytes into the buffer,
+     * Loads all available bytes that fit into the buffer,
      * if there is some data left in the buffer the new bytes will be appended.
-     *
-     * @return how much data is in the buffer
      */
-    private int readToBuffer() {
+    private void refillBuffer() {
+        //do we need to grab more data ?
+        if (cursor == dataLen || findNewLine() == -1) {
 
-        //push back any leftover data to front
-        int index = findNewLine();
+            //push back any leftover data to front
+            int offset = dataLen - cursor;
 
-        for(int i = 0; i < index - cursor; i++) {
-            buffer[i] = buffer[cursor + i];
-        }
-
-        int offset = (index - cursor) < 0 ? 0 : (index - cursor);
-
-        //try to read new data into buffer
-        //System.out.println("> avail " + serialPort.bytesAvailable()  + " bytes");
-        if (serialPort.bytesAvailable() > 0) {
-            try {
-                int numRead = serialPort.readBytes(buffer, buffer.length - offset, offset);
-                //System.out.println("> read " + numRead + " bytes");
-
-                if (numRead < 0) {
-                    throw new Exception("Reading bytes has resulted in an error");
-                }
-
-                return offset + numRead;
-            } catch (Exception e) {
-                e.printStackTrace();
+            /* theres a warning that we are using manual array copy,
+             * ignore this since we can't use System.arraycopy() or Arrays.copyOfRange()
+             * because those methods copy into a different array,
+             * here we are pushing back in the same array
+             */
+            for (int i = 0; i < offset; i++) {
+                buffer[i] = buffer[cursor + i];
             }
-        }
 
-        return offset;
+            int numRead = 0;
+
+            //try to read new data into buffer
+            if (serialPort.bytesAvailable() > 0) {
+                try {
+                    numRead = serialPort.readBytes(buffer, buffer.length - offset, offset);
+
+                    if (numRead < 0) {
+                        throw new Exception("Reading bytes has resulted in an error");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            cursor = 0;
+            dataLen = offset + numRead;
+        }
     }
 
     /**
@@ -139,8 +142,8 @@ public class USBController {
      * @return index or -1 if nothing is found
      */
     private int findNewLine() {
-        for(int i = cursor; i < dataLen; i++) {
-            if(buffer[i] == '\n') return i;
+        for (int i = cursor; i < dataLen; i++) {
+            if (buffer[i] == '\n') return i;
         }
 
         return -1;
