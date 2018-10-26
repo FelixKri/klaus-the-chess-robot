@@ -16,10 +16,11 @@ public class USBController {
     private SerialPort serialPort;
     private byte[] buffer;
     private int cursor = 0;
+    private int dataLen = 0;
     private boolean init = false;
 
     public USBController() {
-        this(256);
+        this(50);
     }
 
     /**
@@ -64,10 +65,85 @@ public class USBController {
     /**
      * Returns the next line from the buffer or null if there is nothing in the buffer.
      * If theres nothing in the buffer it will try to fill it.
-     * A line ending is "\n"
+     * A line ending is "\n", its not included in the string.
+     *
+     * @return next line in buffer or null
      */
     public String nextLine() {//TODO: implement buffered line reading
+        if (!init) return null;
+
+        //is a line in the buffer
+        if(cursor == dataLen || findNewLine() == -1) {
+            System.out.println("> to buffer");
+            dataLen = readToBuffer();
+            cursor = 0;
+        }
+
+        //try to retrieve data
+        int index = findNewLine();
+        //System.out.println("> index " + index);
+        if(cursor < dataLen && index >= 0) {
+            System.out.println("> cursor " + cursor);
+            System.out.println("> datalen " + dataLen);
+            //System.out.println("> from buffer");
+
+            byte[] bytes = new byte[index - cursor];
+            System.arraycopy(buffer, cursor, bytes, 0, bytes.length);
+            cursor = index + 1;
+            return new String(bytes, Charset.forName("US-ASCII"));
+        }
+
         return null;
+    }
+
+    /**
+     * Loads all available bytes into the buffer,
+     * if there is some data left in the buffer the new bytes will be appended.
+     *
+     * @return how much data is in the buffer
+     */
+    private int readToBuffer() {
+
+        //push back any leftover data to front
+        int index = findNewLine();
+
+        for(int i = 0; i < index - cursor; i++) {
+            buffer[i] = buffer[cursor + i];
+        }
+
+        int offset = (index - cursor) < 0 ? 0 : (index - cursor);
+
+        //try to read new data into buffer
+        //System.out.println("> avail " + serialPort.bytesAvailable()  + " bytes");
+        if (serialPort.bytesAvailable() > 0) {
+            try {
+                int numRead = serialPort.readBytes(buffer, buffer.length - offset, offset);
+                //System.out.println("> read " + numRead + " bytes");
+
+                if (numRead < 0) {
+                    throw new Exception("Reading bytes has resulted in an error");
+                }
+
+                return offset + numRead;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return offset;
+    }
+
+    /**
+     * Searches for '\n' in the buffer
+     *
+     * @return index or -1 if nothing is found
+     */
+    private int findNewLine() {
+        for(int i = cursor; i < dataLen; i++) {
+            if(buffer[i] == '\n') return i;
+        }
+
+        return -1;
     }
 
     /**
@@ -118,7 +194,7 @@ public class USBController {
                 "name=" + serialPort.getDescriptivePortName() + ", " +
                 "sysname=" + serialPort.getSystemPortName() + ", " +
                 "description=" + serialPort.getPortDescription() + ", " +
-                "baudrate=" + serialPort.getBaudRate() + ", " +
+                "baudrate=" + serialPort.getBaudRate() +
                 '}';
     }
 }

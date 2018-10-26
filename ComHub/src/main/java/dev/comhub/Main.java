@@ -9,10 +9,10 @@ public class Main {
         usbc.init();
 
         while(true) {
-            String s = usbc.read();
-            if(s != null) System.out.print(s);
+            String s = usbc.nextLine();
+            if(s != null) System.out.println("\t\t\t\t\t\t" + s);
             try {
-                Thread.sleep(10);
+                Thread.sleep(150);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
