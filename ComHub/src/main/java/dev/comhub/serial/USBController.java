@@ -8,8 +8,6 @@ import java.util.Scanner;
 /**
  * A wrapper around {@link com.fazecast.jSerialComm.SerialPort} it also made more generic.
  * It also features built in port selection.
- * <p>
- * To use this class baudrate MUST be 9600!
  */
 public class USBController {
 
@@ -33,8 +31,10 @@ public class USBController {
     /**
      * Lets the user choose which com port to use and
      * initializes the port.
+     *
+     * @param baudRate baudrate of the connection
      */
-    public void init() {
+    public void init(int baudRate) {
         if (init) return;//TODO: should the user be notified that the controller isnt initialized ?
 
         SerialPort[] ports = SerialPort.getCommPorts();
@@ -49,12 +49,17 @@ public class USBController {
         int choice = scanner.nextInt();
 
         try {
-            if (choice < 0 || choice > ports.length)
+            if (choice < 0 || choice > ports.length - 1) {
                 throw new Exception("Port number too big or too small");
+            }
 
             serialPort = ports[choice];
-            serialPort.openPort();
+            serialPort.setBaudRate(baudRate);
+            boolean success = serialPort.openPort();
 
+            if (!success) {
+                throw new Exception("Couldn't open serial port");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -163,6 +168,7 @@ public class USBController {
 
             try {
                 int numRead = serialPort.readBytes(bytes, bytes.length);
+
                 if (numRead < 0) {
                     throw new Exception("Reading bytes has resulted in an error");
                 }
@@ -174,6 +180,28 @@ public class USBController {
         }
 
         return null;
+    }
+
+    /**
+     * Sends the given string over the serialport.
+     *
+     * @param data string to send
+     */
+    public void write(String data) {
+        if (!init) return;
+
+        byte[] bytes = data.getBytes(Charset.forName("US-ASCII"));
+
+        try {
+            int numWrite = serialPort.writeBytes(bytes, bytes.length);
+
+            if (numWrite < 0) {
+                throw new Exception("Writing bytes has resulted in an error");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
