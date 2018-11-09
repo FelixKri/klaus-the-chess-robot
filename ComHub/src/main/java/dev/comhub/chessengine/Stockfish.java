@@ -7,16 +7,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A wrapper around the stockfish engine and process
+ * A wrapper around the stockfish engine
+ * it also has predefined functions to communicate
  *
  * Code was copied from https://github.com/NiflheimDev/Stockfish-Java/
  */
-public class Stockfish implements ChessEngine {
+public class Stockfish {
 
     private Process process;
     private BufferedReader input;
     private BufferedWriter output;
 
+    /**
+     * @param path the path to the engine executable
+     */
     public Stockfish(String path) {
         try {
             ProcessBuilder ps = new ProcessBuilder(path);
@@ -31,7 +35,6 @@ public class Stockfish implements ChessEngine {
         }
     }
 
-    @Override
     public void close() throws IOException {
         try {
             sendCommand("quit");
@@ -42,13 +45,26 @@ public class Stockfish implements ChessEngine {
         }
     }
 
-    @Override
-    public String getBestMove(int difficulty) {
-        return getBestMove(getFen(), difficulty);
+    /**
+     * Gets the best possible move depending on the current chess board
+     *
+     * @param difficulty difficulty of the engine
+     * @param movetime amount of time, in ms, that stockfish should use to find a move
+     * @return
+     */
+    public String getBestMove(int difficulty, int movetime) {
+        return getBestMove(getFen(), difficulty, movetime);
     }
 
-    @Override
-    public String getBestMove(String fen, int difficulty) {
+    /**
+     * Gets the best possible move depending on the current chess board
+     *
+     * @param fen chess board
+     * @param difficulty difficulty of the engine
+     * @param movetime amount of time, in ms, that stockfish should use to find a move
+     * @return the best move
+     */
+    public String getBestMove(String fen, int difficulty, int movetime) {
         waitForReady();
         setOption("Skill Level", difficulty);
 
@@ -56,7 +72,7 @@ public class Stockfish implements ChessEngine {
         sendCommand("position fen " + fen);
 
         waitForReady();
-        sendCommand("go movetime 4000");
+        sendCommand("go movetime " + movetime);
 
         String bestmove = "";
         List<String> response = readResponse("bestmove");
@@ -72,12 +88,22 @@ public class Stockfish implements ChessEngine {
         return bestmove.split("\\s+")[0];
     }
 
-    @Override
+    /**
+     * Returns a list of possible positions to place a piece to achieve a checkmate
+     * it uses the current fen
+     *
+     * @return list of possible positions to place a piece to achieve a checkmate
+     */
     public List<String> getCheckers() {
         return getCheckers(getFen());
     }
 
-    @Override
+    /**
+     * Returns a list of possible positions to place a piece to achieve a checkmate
+     *
+     * @param fen the current board
+     * @return list of possible positions to place a piece to achieve a checkmate
+     */
     public List<String> getCheckers(String fen) {
         waitForReady();
         sendCommand("position fen " + fen);
@@ -99,13 +125,11 @@ public class Stockfish implements ChessEngine {
         return Arrays.stream(checkers).filter(e -> e.length() == 2).collect(Collectors.toList());
     }
 
-    @Override
     public void setFen(String fen) {
         waitForReady();
         sendCommand("position fen " + fen);
     }
 
-    @Override
     public String getFen() {
         waitForReady();
         sendCommand("d");
@@ -123,16 +147,18 @@ public class Stockfish implements ChessEngine {
         return fen;
     }
 
-    @Override
     public String makeMove(String pgn) {
         return makeMove(getFen(), pgn);
     }
 
-    @Override
     public String makeMove(String fen, String pgn) {
         waitForReady();
         sendCommand("position fen " + fen + " moves " + pgn);
         return getFen();
+    }
+
+    public void setOption(String name, int value) {
+        sendCommand("setoption name " + name + " value " + value);
     }
 
     private List<String> readResponse(String expected) {
@@ -158,10 +184,6 @@ public class Stockfish implements ChessEngine {
         } catch (IOException e) {
             throw new StockfishException(e);
         }
-    }
-
-    public void setOption(String name, int value) {
-        sendCommand("setoption name " + name + " value " + value);
     }
 
     private void waitForReady() {

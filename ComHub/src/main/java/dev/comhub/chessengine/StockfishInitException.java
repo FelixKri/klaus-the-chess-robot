@@ -1,7 +1,7 @@
 package dev.comhub.chessengine;
 
 /**
- * Code was copied from https://github.com/NiflheimDev/Stockfish-Java/
+ * Code from https://github.com/NiflheimDev/Stockfish-Java/
  */
 public class StockfishInitException extends Exception {
 

@@ -12,13 +12,35 @@ public class Main {
         Stockfish s = new Stockfish(eng);
         s.setOption("Threads", 4);
 
-        while(true) {
+        while (true) {
+
+            //white
             String fen = s.getFen();
             Scanner scn = new Scanner(System.in);
-            String move = s.getBestMove(20);
+            String move = s.getBestMove(0, 80);
             s.makeMove(fen, move);
 
+            for (String d : s.getCheckers()) {
+                System.out.println(d);
+            }
+
             System.out.println(fen + "\n  ~  " + move + "\n");
+
+            if(move.equals("(none)")) {
+                break;
+            }
+
+            //black
+            fen = s.getFen();
+            move = s.getBestMove(20, 9000);
+            s.makeMove(fen, move);
+
+            System.out.println(fen);
+            for (String d : s.getCheckers()) {
+                System.out.println(d);
+            }
+
+            System.out.println("  ~  " + move + "\n");
         }
     }
 
