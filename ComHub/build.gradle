@@ -14,3 +14,14 @@ dependencies {
     compile 'com.fazecast:jSerialComm:[2.0.0,3.0.0)'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Stockfish Gradle Jar',
+                'Implementation-Version': version,
+                'Main-Class': 'dev.comhub.Main'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
