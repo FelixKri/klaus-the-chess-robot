@@ -1,10 +1,50 @@
 package dev.comhub;
 
+import dev.comhub.chessengine.Stockfish;
 import dev.comhub.serial.USBController;
+
+import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
+        String eng = "C:\\Users\\Thomas\\Desktop\\stockfish-9-win\\Windows\\stockfish_9_x64.exe";
+        Stockfish s = new Stockfish(eng);
+        s.setOption("Threads", 4);
+
+        while (true) {
+
+            //white
+            String fen = s.getFen();
+            Scanner scn = new Scanner(System.in);
+            String move = s.getBestMove(0, 80);
+            s.makeMove(fen, move);
+
+            for (String d : s.getCheckers()) {
+                System.out.println(d);
+            }
+
+            System.out.println(fen + "\n  ~  " + move + "\n");
+
+            if(move.equals("(none)")) {
+                break;
+            }
+
+            //black
+            fen = s.getFen();
+            move = s.getBestMove(20, 9000);
+            s.makeMove(fen, move);
+
+            System.out.println(fen);
+            for (String d : s.getCheckers()) {
+                System.out.println(d);
+            }
+
+            System.out.println("  ~  " + move + "\n");
+        }
+    }
+
+    public static void USBController_example() {
         USBController usbc = new USBController();
         usbc.init(38400);
 
