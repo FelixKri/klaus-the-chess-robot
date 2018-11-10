@@ -1,5 +1,6 @@
 package dev.comhub;
 
+import dev.comhub.chessengine.Board;
 import dev.comhub.chessengine.Stockfish;
 import dev.comhub.serial.USBController;
 
@@ -8,6 +9,31 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
+        Board_example();
+    }
+
+    public static void Board_example() {
+        USBController usbc = new USBController();
+        usbc.init(38400);
+
+        while (true) {
+            while (usbc.hasLine()) {
+                String l = usbc.nextLine();
+                String move = Board.posArrayToMove(l);
+                if(move != null) {
+                    System.out.println(move);
+                }
+            }
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void Stockfish_example() {
         String eng = "C:\\Users\\Thomas\\Desktop\\stockfish-9-win\\Windows\\stockfish_9_x64.exe";
         Stockfish s = new Stockfish(eng);
         s.setOption("Threads", 4);
@@ -17,12 +43,12 @@ public class Main {
             //white
             String fen = s.getFen();
             Scanner scn = new Scanner(System.in);
-            String move = s.getBestMove(0, 80);
+            String move = s.getBestMove(0, 100);
             s.makeMove(fen, move);
 
-            for (String d : s.getCheckers()) {
+            /*for (String d : s.getCheckers()) {
                 System.out.println(d);
-            }
+            }*/
 
             System.out.println(fen + "\n  ~  " + move + "\n");
 
@@ -36,9 +62,9 @@ public class Main {
             s.makeMove(fen, move);
 
             System.out.println(fen);
-            for (String d : s.getCheckers()) {
+            /*for (String d : s.getCheckers()) {
                 System.out.println(d);
-            }
+            }*/
 
             System.out.println("  ~  " + move + "\n");
         }
