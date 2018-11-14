@@ -24,16 +24,16 @@ void setup() {
   bottom_servo.attach(bottom_servo_pin);
   top_servo.attach(top_servo_pin);
 
-  pinMode(13, INPUT); //Poti stepper
-  pinMode(12, OUTPUT); //Poti bottom_servo
-  pinMode(11, OUTPUT); //Poti top_servo
+  pinMode(A0, INPUT); //Poti stepper
+  pinMode(A1, OUTPUT); //Poti bottom_servo
+  pinMode(A2, OUTPUT); //Poti top_servo
 
 }
 
 void loop() {
-  int topVal = map(digitalRead(13), 0, 1024, 0, 120);
-  int bottomVal = map(digitalRead(12), 0, 1024, 0, 120);
-  int stepperVal = map(digitalRead(11), 0, 1024, 0, 200);
+  int topVal = map(analogRead(13), 0, 1024, 0, 120);
+  int bottomVal = map(analogRead(12), 0, 1024, 0, 120);
+  int stepperVal = map(analogRead(11), 0, 1024, 0, 200);
 
   stepper.step(stepperVal);
   delay(10);
