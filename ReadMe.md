@@ -16,6 +16,6 @@ When a legal human move is detected, the chessboard Arduino sends the move (eg: 
 ## Team
 The Project was realized by Florian Rettenbacher, Johannes Rehrl, Felix Kristandl and Thomas Lienbacher and supervised by Professor Paul Fleischmann during the Laboratory Class in Fall 2018.
 
-##License
+## License
 
 MIT License
