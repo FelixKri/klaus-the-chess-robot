@@ -10,13 +10,13 @@ public class Board {
     /**
      * This class shouldn't be instantiated
      */
-    private Board(){}
+    private Board() { }
 
     /**
      * Converts a board string to a move string by comparing the new and old boards
-     *
+     * <p>
      * A1 = array[0][0]
-     * G8 = array[7][7]
+     * H8 = array[7][7]
      *
      * @param newBoard a string of the new board
      * @return the move or null
@@ -57,5 +57,30 @@ public class Board {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Resets the previus String used in {@link #posArrayToMove(String)}
+     */
+    public static void reset() {
+        prevBoard = "";
+    }
+
+    /**
+     * Converts the move command from stockfish to an easier format for the arduino
+     *
+     * @return the new command
+     */
+    public static String moveToCommand(String move) {
+        char[] cmdArr = move.toCharArray();
+
+        String cmd = "";
+
+        cmd += (int) (cmdArr[0] - 'a');
+        cmd += (int) (cmdArr[1] - '1');
+        cmd += (int) (cmdArr[2] - 'a');
+        cmd += (int) (cmdArr[3] - '1');
+
+        return cmd;
     }
 }
