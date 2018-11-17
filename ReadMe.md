@@ -1,4 +1,4 @@
-*This Project is still WIP" 
+*This Project is still WIP*
 # Klaus the Chess Bot
 Klaus is an autonomous chess playing arm. It calculates it's moves using Stockfish 9 running on a Raspberry Pi 3. It's ELO Rating is about 2000, so it sould beat most casual players.
 
