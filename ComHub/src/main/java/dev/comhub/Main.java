@@ -1,6 +1,6 @@
 package dev.comhub;
 
-import dev.comhub.chessengine.Board;
+import dev.comhub.chessengine.__OldBoard;
 import dev.comhub.chessengine.Stockfish;
 import dev.comhub.serial.USBController;
 
@@ -19,7 +19,7 @@ public class Main {
         while (true) {
             while (usbc.hasLine()) {
                 String l = usbc.nextLine();
-                String move = Board.posArrayToMove(l);
+                String move = __OldBoard.posArrayToMove(l);
                 if(move != null) {
                     System.out.println(move);
                 }

@@ -1,86 +1,106 @@
 package dev.comhub.chessengine;
 
-/**
- * Stores the old board and converts the boards to their moves
- */
+import java.util.LinkedList;
+
 public class Board {
 
-    private static String prevBoard = "";
+    public static final String BASE_BOARD = "11111111" +
+            "11111111" +
+            "00000000" +
+            "00000000" +
+            "00000000" +
+            "00000000" +
+            "11111111" +
+            "11111111";
+
+    private String prevBoard;
+    private LinkedList<Move> moves;
+
+    public Board() {
+        prevBoard = BASE_BOARD;
+        moves = new LinkedList<>();
+    }
+
+    public Board(String baseBoard) {
+        this.prevBoard = baseBoard;//TODO: check string length
+        moves = new LinkedList<>();
+    }
+
+    public void addBoard(String board) {
+        if (board.length() != 64) {
+            System.err.println("Board doesn't have correct size");//TODO: do we really need to print this ??
+        }
+
+        if(!prevBoard.equals(board)) {
+            Move m = getMove(prevBoard, board);
+            moves.add(m);
+            prevBoard = board;
+        }
+    }
+
+    public Move compileMove() {
+        // cant get move if nothing significant happend
+        // an instant move is not valid
+        if(moves.size() < 2) {
+            return null;
+        }
+
+        // normal move
+        // edge case: player takes piece but puts it back
+        if(moves.size() == 2) {
+
+        }
+
+        /* capture
+         *
+         * [0] -> piece is picked up
+         * [1] -> to capture is picked up
+         * [2] -> piece placed on others place
+         */
+        if(moves.size() == 3) {
+
+        }
+
+        /* castling
+         *
+         *  [0] -> king is picked up
+         *  [1] -> rook is picked up
+         *  [2] -> king is placed back
+         *  [3] -> rook is placed back
+         */
+        if(moves.size() == 4) {
+
+        }
+
+        return null;
+    }
+
 
     /**
-     * This class shouldn't be instantiated
-     */
-    private Board() { }
-
-    /**
-     * Converts a board string to a move string by comparing the new and old boards
-     * <p>
-     * A1 = array[0][0]
-     * H8 = array[7][7]
+     * Compares two boards and determines the move made
      *
-     * @param newBoard a string of the new board
-     * @return the move or null
+     * @param from before move board
+     * @param to after move board
+     * @return the move
      */
-    public static String posArrayToMove(String newBoard) {
-        if (newBoard.length() != 64) {
-            System.err.println("Array doesn't have correct size");//TODO: do we really need to print this ??
-            return null;
-        }
-
-        if (prevBoard.isEmpty()) {
-            prevBoard = newBoard;
-            return null;
-        }
-
-        char[] newArray = newBoard.trim().toCharArray();
-        char[] oldArray = prevBoard.toCharArray();
+    public Move getMove(String from, String to) {//TODO: why is this public ?? (because tests..)
+        char[] newArray = from.toCharArray();
+        char[] oldArray = to.toCharArray();
 
         int oldPos = -1;
         int newPos = -1;
 
         for (int i = 0; i < 64; i++) {
-            if (oldArray[i] > newArray[i]) oldPos = i;
-            if (oldArray[i] < newArray[i]) newPos = i;
+            if (oldArray[i] > newArray[i]) newPos = i;
+            if (oldArray[i] < newArray[i]) oldPos = i;
         }
 
-        //found pos
-        if (oldPos + newPos > 0) {
-            String move = "";
+        int oldX = oldPos > -1 ? oldPos % 8 : Move.NOTHING;
+        int oldY = oldPos > -1 ? oldPos / 8 : Move.NOTHING;
+        int newX = newPos > -1 ? newPos % 8 : Move.NOTHING;
+        int newY = newPos > -1 ? newPos / 8 : Move.NOTHING;
 
-            move += (char) ('a' + oldPos % 8);
-            move += (char) ('1' + oldPos / 8);
-            move += (char) ('a' + newPos % 8);
-            move += (char) ('1' + newPos / 8);
-
-            prevBoard = newBoard;
-            return move;
-        } else {
-            return null;
-        }
+        return new Move(oldX, oldY, newX, newY);
     }
 
-    /**
-     * Resets the previus String used in {@link #posArrayToMove(String)}
-     */
-    public static void reset() {
-        prevBoard = "";
-    }
-
-    /**
-     * Converts the move command from stockfish to an easier format for the arduino
-     *
-     * @return the new command
-     */
-    public static String moveToCommand(String move) {
-        char[] cmdArr = move.toCharArray();
-
-        String cmd = "";
-
-        cmd += (int) (cmdArr[0] - 'a');
-        cmd += (int) (cmdArr[1] - '1');
-        cmd += (int) (cmdArr[2] - 'a');
-        cmd += (int) (cmdArr[3] - '1');
-
-        return cmd;
-    }
 }
